@@ -1,6 +1,10 @@
+// src/modules/auth/auth.service.js
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const db = require("../../utils/db");
+const authRepository = require("./auth.repository");
+
+const SALT_ROUNDS = 12;
 
 exports.register = async ({
   business_name,
@@ -10,64 +14,49 @@ exports.register = async ({
   password,
   phone,
 }) => {
-  //1. Check if email already exists
-  const existingUser = await db.query("SELECT id FROM users WHERE email = $1", [
-    email,
-  ]);
+  // 1. Check if email already exists
+  const existingUser = await authRepository.findByEmail(email);
 
-  if (existingUser.rows.length > 0) {
+  if (existingUser) {
     throw new Error("Email already registered");
   }
 
-  //2. Hash password
-  const saltRounds = 12;
-  const password_hash = await bcrypt.hash(password, saltRounds);
+  // 2. Hash password
+  const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  //3. Insert user in DB
-  const newUser = await db.query(
-    `
-    INSERT INTO users (
-    business_name, 
-    first_name, 
-    last_name, 
-    email, 
+  // 3. Create user
+  const newUser = await authRepository.createUser({
+    business_name,
+    first_name,
+    last_name,
+    email,
     phone,
-    password_hash
-    ) VALUES ($1, $2, $3, $4, $5, $6) 
-     RETURNING id, business_name, first_name, last_name, email, created_at
-     `,
-    [business_name, first_name, last_name, email, phone, password_hash],
-  );
+    password_hash,
+  });
 
-  return newUser.rows[0];
+  return newUser;
 };
 
 exports.login = async ({ email, password }) => {
-  //1. Check if user exists
-  const confirmUser = await db.query(
-    `SELECT id, email, password_hash FROM users WHERE email = $1 and is_active = TRUE`,
-    [email],
-  );
+  // 1. Check if user exists
+  const user = await authRepository.findByEmail(email);
 
-  if (confirmUser.rows.length === 0) {
+  if (!user || !user.is_active) {
     throw new Error("User not found");
   }
 
-  //2. Check if password is correct
-  const user = confirmUser.rows[0];
+  // 2. Validate password
   const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
   if (!isPasswordValid) {
     throw new Error("Invalid password");
   }
 
-  //3. Generate JWT
+  // 3. Generate JWT
   const token = jwt.sign(
     { userId: user.id, email: user.email },
     process.env.JWT_SECRET,
-    {
-      expiresIn: "1d",
-    },
+    { expiresIn: "1d" },
   );
 
   return {
