@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const db = require("../../utils/db");
 
 exports.register = async ({
@@ -39,4 +40,42 @@ exports.register = async ({
   );
 
   return newUser.rows[0];
+};
+
+exports.login = async ({ email, password }) => {
+  //1. Check if user exists
+  const confirmUser = await db.query(
+    `SELECT id, email, password_hash FROM users WHERE email = $1 and is_active = TRUE`,
+    [email],
+  );
+
+  if (confirmUser.rows.length === 0) {
+    throw new Error("User not found");
+  }
+
+  //2. Check if password is correct
+  const user = confirmUser.rows[0];
+  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+  if (!isPasswordValid) {
+    throw new Error("Invalid password");
+  }
+
+  //3. Generate JWT
+  const token = jwt.sign(
+    { userId: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "1d",
+    },
+  );
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      business_name: user.business_name,
+      email: user.email,
+    },
+  };
 };
