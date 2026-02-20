@@ -1,0 +1,4 @@
+
+Code to launch postgres in timeline
+###
+docker exec -it quote2pdf-postgres psql -U quote2pdf_user -d quote2pdf

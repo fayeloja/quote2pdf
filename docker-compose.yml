@@ -28,3 +28,5 @@ volumes:
 
 # start docker
 # docker-compose up -d
+
+# docker exec -it quote2pdf-postgres psql -U quote2pdf_user -d quote2pdf

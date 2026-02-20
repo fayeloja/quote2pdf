@@ -1,6 +1,6 @@
 CREATE TABLE quotations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
-    user_id UUID NOT NULL REFERENCES users (id),
+    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     customer_id UUID REFERENCES customers (id),
     quote_number INTEGER NOT NULL,
     status TEXT CHECK (

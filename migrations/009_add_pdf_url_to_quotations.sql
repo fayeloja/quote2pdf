@@ -1,1 +1,0 @@
-Content: Adding the column to store the S3/Cloudinary link.
