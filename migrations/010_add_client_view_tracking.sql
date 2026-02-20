@@ -1,0 +1,1 @@
+Content: Adding last_viewed_at or view_count to the quotations

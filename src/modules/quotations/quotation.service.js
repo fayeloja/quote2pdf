@@ -39,15 +39,6 @@ async function acceptQuotation(userId, quotationId) {
   return repo.updateStatus(quotationId, "accepted");
 }
 
-async function acceptQuotation(userId, quotationId) {
-  const quotation = await repo.findById(quotationId);
-
-  assertOwnership(quotation, userId);
-  assertStatus(quotation, "sent");
-
-  return repo.updateStatus(quotationId, "accepted");
-}
-
 //clone quotation
 async function cloneQuotation(userId, quotationId) {
   const quotation = await repo.findById(quotationId);
@@ -69,3 +60,19 @@ async function recalculateTotals(quotationId) {
     totals.grandTotal,
   );
 }
+
+exports.updateQuotation = async (id, userId, data) => {
+  const quotation = await quotationRepo.findById(id);
+  if (!quotation) throw new NotFoundError();
+
+  // 🔒 AUTHORIZATION
+  if (quotation.user_id !== userId) {
+    throw new ForbiddenError();
+  }
+
+  if (quotation.status !== "draft") {
+    throw new Error("Only draft quotations can be edited");
+  }
+
+  return quotationRepo.update(id, data);
+};

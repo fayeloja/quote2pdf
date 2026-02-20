@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: quote2pdf-postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: quote2pdf
+      POSTGRES_USER: quote2pdf_user
+      POSTGRES_PASSWORD: quote2pdf_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+
+# find ip address of a container
+# docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' quote2pdf-postgres
+
+# run pgadmin 
+# docker run --name pgadmin_setup -p 5050:80 -e PGADMIN_DEFAULT_EMAIL=fayeloja@gmail.com -e PGADMIN_DEFAULT_PASSWORD=ayeloja -d dpage/pgadmin4
+
+# stop docker
+# docker-compose down -v
+
+# start docker
+# docker-compose up -d

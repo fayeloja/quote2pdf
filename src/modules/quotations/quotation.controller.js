@@ -3,7 +3,7 @@
 exports.createQuotation = async (req, res) => {
   const userId = req.user.id;
 
-  const quotation = await quotation.Service.createDraft(userId, req.body);
+  const quotation = await quotationService.createDraft(userId, req.body);
 
   res.status(201).json(quotation);
 };

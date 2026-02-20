@@ -1,5 +1,5 @@
 // version 1.0 is suppose to be bad.
-
+const dotenv = require("dotenv").config();
 const PDFDocument = require("pdfkit");
 const ejs = require("ejs");
 const path = require("path");

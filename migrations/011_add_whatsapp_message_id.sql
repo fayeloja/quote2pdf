@@ -1,0 +1,1 @@
+Content: To track if the WhatsApp message was successfully delivered.
