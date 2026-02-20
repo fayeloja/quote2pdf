@@ -7,6 +7,8 @@ const puppeteer = require("puppeteer");
 const express = require("express");
 const morgan = require("morgan");
 const quotationData = require("./quotationData");
+const authRoutes = require("./src/modules/auth/auth.routes");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -15,6 +17,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 app.use(express.json());
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Home Page!");
@@ -165,6 +168,7 @@ app.get("/download-pdf/:id", async (req, res) => {
   );
   res.send(pdfBuffer);
 });
+////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////
 app.listen(PORT, () => {
