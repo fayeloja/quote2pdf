@@ -9,6 +9,7 @@ const morgan = require("morgan");
 const quotationData = require("./quotationData");
 const authRoutes = require("./src/modules/auth/auth.routes");
 const customerRoutes = require("./src/modules/customers/customers.routes");
+const errorMiddleware = require("./src/middlewares/error.middleware");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,8 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
+
+app.use(errorMiddleware);
 
 console.log("JWT_SECRET: ", process.env.JWT_SECRET);
 

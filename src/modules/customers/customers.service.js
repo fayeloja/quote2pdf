@@ -1,4 +1,5 @@
 const customersRepository = require("./customers.repository");
+const AppError = require("../../utils/appError");
 
 // Create customer
 exports.createCustomer = async (userId, payload) => {
@@ -60,7 +61,7 @@ exports.getCustomer = async (customerId, userId) => {
   );
 
   if (!customer) {
-    throw new Error("Customer not found");
+    throw new AppError("Customer not found", 404);
   }
 
   return customer;
@@ -75,7 +76,7 @@ exports.updateCustomer = async (customerId, userId, payload) => {
   );
 
   if (!updatedCustomer) {
-    throw new Error("Customer not found or no valid fields provided");
+    throw new AppError("Customer not found or no valid fields provided", 404);
   }
 
   return updatedCustomer;
@@ -86,7 +87,7 @@ exports.deleteCustomer = async (customerId, userId) => {
   const deleted = await customersRepository.deleteCustomer(customerId, userId);
 
   if (!deleted) {
-    throw new Error("Customer not found");
+    throw new AppError("Customer not found", 404);
   }
 
   return { message: "Customer deleted successfully" };
