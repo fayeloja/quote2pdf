@@ -8,6 +8,7 @@ const express = require("express");
 const morgan = require("morgan");
 const quotationData = require("./quotationData");
 const authRoutes = require("./src/modules/auth/auth.routes");
+const customerRoutes = require("./src/modules/customers/customers.routes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +18,11 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 app.use(express.json());
+
 app.use("/api/auth", authRoutes);
+app.use("/api/customers", customerRoutes);
+
+console.log("JWT_SECRET: ", process.env.JWT_SECRET);
 
 app.get("/", (req, res) => {
   res.send("Home Page!");

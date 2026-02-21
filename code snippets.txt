@@ -1,10 +1,10 @@
 
-Code to launch postgres in timeline
+Code to launch postgresql in commandline terminal
 ###
 docker exec -it quote2pdf-postgres psql -U quote2pdf_user -d quote2pdf
 
 
-$########################### auth.service.js backup code
+########################### auth.service.js backup code
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -87,3 +87,13 @@ exports.login = async ({ email, password }) => {
     },
   };
 };
+
+
+////
+
+
+src/modules/customers/
+  customers.routes.js
+  customers.controller.js
+  customers.service.js
+  customers.repository.js 
