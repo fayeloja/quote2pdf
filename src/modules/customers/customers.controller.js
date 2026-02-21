@@ -11,14 +11,14 @@ exports.createCustomer = async (req, res) => {
   }
 };
 
-exports.getCustomers = async (req, res) => {
+exports.getCustomers = async (req, res, next) => {
   try {
     const userId = req.user.userId;
-    const customers = await customersService.getCustomers(userId);
+    const customers = await customersService.getCustomers(userId, req.query);
 
     res.json(customers);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    next(err);
   }
 };
 

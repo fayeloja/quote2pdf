@@ -70,7 +70,7 @@ exports.getCustomerById = async (customerId, userId) => {
 };
 
 // UPDATE
-exports.updateCustomer = async (id, user_id, fields) => {
+exports.updateCustomer = async (customerId, userId, fields) => {
   const allowedFields = [
     "first_name",
     "last_name",
@@ -99,8 +99,8 @@ exports.updateCustomer = async (id, user_id, fields) => {
     return null;
   }
 
-  values.push(id);
-  values.push(user_id);
+  values.push(customerId);
+  values.push(userId);
 
   const result = await db.query(
     `
@@ -116,15 +116,43 @@ exports.updateCustomer = async (id, user_id, fields) => {
 };
 
 // DELETE
-exports.deleteCustomer = async (id, user_id) => {
+exports.deleteCustomer = async (customerId, userId) => {
   const result = await db.query(
     `
     DELETE FROM customers
     WHERE id = $1 AND user_id = $2
     RETURNING id
     `,
-    [id, user_id],
+    [customerId, userId],
   );
 
   return result.rows[0];
+};
+
+// GET customers with pagination
+exports.getCustomersPaginated = async (userId, limit, offset) => {
+  const dataQuery = await db.query(
+    `
+    SELECT *
+    FROM customers
+    WHERE user_id = $1
+    ORDER BY created_at DESC
+    LIMIT $2 OFFSET $3
+    `,
+    [userId, limit, offset],
+  );
+
+  const countQuery = await db.query(
+    `
+    SELECT COUNT(*) 
+    FROM customers 
+    WHERE user_id = $1
+    `,
+    [userId],
+  );
+
+  return {
+    customers: dataQuery.rows,
+    total: parseInt(countQuery.rows[0].count, 10),
+  };
 };
