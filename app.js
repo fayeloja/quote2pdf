@@ -10,6 +10,8 @@ const quotationData = require("./quotationData");
 const authRoutes = require("./src/modules/auth/auth.routes");
 const customerRoutes = require("./src/modules/customers/customers.routes");
 const errorMiddleware = require("./src/middlewares/error.middleware");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./src/config/swagger");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +26,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
 
 app.use(errorMiddleware);
+
+// Swagger documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 console.log("JWT_SECRET: ", process.env.JWT_SECRET);
 
