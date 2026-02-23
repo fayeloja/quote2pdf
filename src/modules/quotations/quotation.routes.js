@@ -1,25 +1,20 @@
-// src/modules/quotations/quotation.routes.js
-import Router from "express";
-import controller from "./quotation.controller.js";
-import authMiddleware from "../../middlewares/auth.js";
-// handles URL + middleware
+const express = require("express");
+const router = express.Router();
+const quotationController = require("./quotation.controller");
+const { validateDownloadPDF } = require("./quotation.validation");
+const authenticate = require("../../middlewares/auth.middleware");
 
-Router.post(
-  "/quotations/:quotationId/items",
-  authMiddleware,
-  controller.create,
+console.log({
+  authenticate,
+  validateDownloadPDF,
+  downloadPDF: quotationController.downloadPDF,
+});
+
+router.get(
+  "/download-pdf/:quotationId",
+  authenticate,
+  validateDownloadPDF,
+  quotationController.downloadPDF,
 );
 
-Router.get("/quotations/:quotationId/items", authMiddleware, controller.getAll);
-
-Router.put(
-  "/quotations/:quotationId/items/:itemId",
-  authMiddleware,
-  controller.update,
-);
-
-Router.delete(
-  "/quotations/:quotationId/items/:itemId",
-  authMiddleware,
-  controller.remove,
-);
+module.exports = router;

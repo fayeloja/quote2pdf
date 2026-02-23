@@ -1,9 +1,18 @@
-//Handles HTTP requests, calls service, returns JSON (in and out)
+const quotationService = require("./quotation.service");
 
-exports.createQuotation = async (req, res) => {
-  const userId = req.user.id;
+exports.downloadPDF = async (req, res, next) => {
+  try {
+    const { quotationId } = req.params;
 
-  const quotation = await quotationService.createDraft(userId, req.body);
+    const pdfBuffer = await quotationService.generatePDF(quotationId);
 
-  res.status(201).json(quotation);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=quotation_${quotationId}.pdf`,
+    );
+    res.send(pdfBuffer);
+  } catch (err) {
+    next(err); // Pass to centralized error handler
+  }
 };

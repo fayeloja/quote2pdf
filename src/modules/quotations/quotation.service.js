@@ -1,78 +1,35 @@
-// Handles business logic, calls repository, returns JSON (in and out)
+const quotationRepository = require("./quotation.repository");
+const ejs = require("ejs");
 
-//create draft
-async function createDraft(userId, data) {
-  const quoteNumber = await repo.getNextQuoteNumber(userId);
+exports.generatePDF = async (quotationId) => {
+  // 1. Fetch quotation + items from repository
+  const quotation = await quotationRepository.getQuotationById(quotationId);
+  if (!quotation) {
+    throw new Error("Quotation not found");
+  }
 
-  return repo.create({
-    user_id: userId,
-    customer_id: data.customerId,
-    quote_number: quoteNumber,
-    notes: data.notes,
+  // 2. Render EJS template into HTML
+  const html = await ejs.renderFile("views/quotation.ejs", {
+    quotation,
+    formatCurrency: (amount, currency) =>
+      new Intl.NumberFormat("en-NG", { style: "currency", currency }).format(
+        amount,
+      ),
   });
-}
 
-//send quotation
-async function sendQuotation(userId, quotationId) {
-  const quotation = await repo.findById(quotationId);
+  // 3. Lazy-load puppeteer
+  const puppeteer = require("puppeteer");
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
 
-  assertOwnership(quotation, userId);
-  assertStatus(quotation, "draft");
+  await page.setContent(html, { waitUntil: "networkidle0" });
 
-  return repo.updateStatus(quotationId, "sent");
-}
+  const pdfBuffer = await page.pdf({
+    format: "A4",
+    printBackground: true,
+    margin: { top: "10mm", right: "10mm", bottom: "10mm", left: "10mm" },
+  });
 
-//assert status
-function assertStatus(quotation, expected) {
-  if (quotation.status !== expected) {
-    throw new Error(`Invalid status transition from ${quotation.status}`);
-  }
-}
-
-//accept quotation
-async function acceptQuotation(userId, quotationId) {
-  const quotation = await repo.findById(quotationId);
-
-  assertOwnership(quotation, userId);
-  assertStatus(quotation, "sent");
-
-  return repo.updateStatus(quotationId, "accepted");
-}
-
-//clone quotation
-async function cloneQuotation(userId, quotationId) {
-  const quotation = await repo.findById(quotationId);
-
-  assertOwnership(quotation, userId);
-  assertClonable(quotation.status);
-
-  return repo.cloneAsDraft(quotationId, userId);
-}
-
-//recalculate totals
-async function recalculateTotals(quotationId) {
-  const totals = await repo.aggregateItems(quotationId);
-
-  await repo.updateTotals(
-    quotationId,
-    totals.subTotal,
-    totals.taxTotal,
-    totals.grandTotal,
-  );
-}
-
-exports.updateQuotation = async (id, userId, data) => {
-  const quotation = await quotationRepo.findById(id);
-  if (!quotation) throw new NotFoundError();
-
-  // 🔒 AUTHORIZATION
-  if (quotation.user_id !== userId) {
-    throw new ForbiddenError();
-  }
-
-  if (quotation.status !== "draft") {
-    throw new Error("Only draft quotations can be edited");
-  }
-
-  return quotationRepo.update(id, data);
+  await browser.close();
+  return pdfBuffer;
 };
